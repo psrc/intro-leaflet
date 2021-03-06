@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <title>Intro to Map Making in R</title>
+</head>
+
+<body>
+    <div class="container">
+        <header class="mb-5 one-edge-shadow">
+            <div class="d-flex justify-content-between align-items-center py-3">
+                <div class=display-4>Intro to Map Making in R</div>
+            </div>
+        </header>
+        <main>
+            <div class="row">
+                <div class="col-sm-3">
+                    <div class="container"> 
+					<img width=50% src="images/sf.png" alt="sf Logo">					
+                    <p class="lead">Simple features are a standardized way of encoding spatial vector data (points, lines, polygons) in computers. 
+					The <b>sf</b> package implements simple features in R, and has roughly the same capacity for spatial vector data as packages sp, rgeos, and rgdal.
+                    </p>
+                </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="container">
+                        <div class="row">
+                            <section>
+                                <p class="mb-0"><b>Date: </b>03-09-2021</p>
+                                <p class="mb-0"><b>Instructor: </b>Craig Helmann</p>
+                                <p><b>Assistants: </b>Hana Ševčíková, Christy Lam, Suzanne Childress, Polina Butrina</p>
+                            </section>
+                            <section>
+                                <h2>Prerequisites</h2>
+                                <p>
+                                    R and the RStudio IDE are required. See the first module on
+                                    <a href="https://psrc.github.io/r-basics-I/00-index.html" target="_blank">R Basics</a> for guidance.
+                                </p>
+                                <p>
+                                    The libraries we will be using today are <b>sf, dplyr and leaflet</b>. To ensure we are all using the same version,
+									let's install them all again on our computers.
+								</p>
+								<p>								
+									You can install the libraries by running the following code
+                                    snippet in the console of
+                                    your RStudio IDE. Ignore any warnings regarding <code>Rtools</code> and if you are asked to install from sources which needs compilation, click 'No'.
+                                <div class="d-flex justify-content-center">
+                                    <code>install.packages(c("sf", "dplyr", "leaflet"))</code>  								
+                                </div>
+                                </p>
+                            </section>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <section>
+                                    <h3>Class Material</h3>
+                                    <ul>
+                                        <li>
+                                            <a href="content/lesson-1.html" target="_blank">Lesson #1 - Spatial Data </a>
+                                        </li>
+										<li>
+                                            <a href="content/lesson-2.html" target="_blank">Lesson #2 - Map Makng </a>
+                                        </li>
+                                        <li>
+                                            <a href="content/homework.html" target="_blank">Homework</a>
+                                        </li>
+                                    </ul>
+                                </section>
+                            </div>
+                            <div class="col">
+                                <section>
+                                    <h3>Resources</h3>
+                                    <ul>
+                                        <li>
+                                            <a href="https://rstudio.github.io/leaflet/" target="_blank">Leaflet for R</a>
+                                        </li>
+                                        <li>
+                                            <a href="https://r-spatial.github.io/sf/" target="_blank">Simple Features for R</a>
+                                        </li>
+                                        <li>
+                                            <a href="https://dplyr.tidyverse.org/" target="_blank"> dplyr</a>
+                                        </li>
+                                        <li>
+                                            <a href="https://psrc.github.io/r-basics-I/" target="_blank">R Learning Series for PSRC</a>
+                                        </li>
+                                    </ul>
+                                </section>
+                            </div>
+                        </div>
+                </div>
+                </div>
+				<div class="col-sm-3">
+					<div class="container">   
+					<img width=100% src="images/leaflet.png" alt="Leaflet Logo">					
+                    <p class="lead">Static maps are useful for creating figures for reports and presentation. Sometimes, however, you want to interact with your data. 
+					You can use <b>leaflet</b> for R to overlay your data on top of interactive maps. 
+					You can think about it like Google maps with your data overlaid on top!
+                    </p>
+				</div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous"></script>
+    <script>
+        $( document ).ready(function() {
+            $('[data-toggle="tooltip"]').tooltip({'placement': 'left'});
+        });
+        </script>
+</body>
+
+</html>
