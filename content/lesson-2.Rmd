@@ -14,6 +14,7 @@ Now that we completed `Lesson #1`, we should have `three` layers to create a map
 
 ``` {r eval=FALSE, echo=TRUE}
 
+
 # Libraries ---------------------------------------------------------------
 
 library(sf)
@@ -33,14 +34,24 @@ wgs84 <- 4326
 current.city <- "Poulsbo"
 
 # Create a function for spatial layers ------------------------------------
-intersect.layers <- function(a.layer, a.columns, overlay, intersect.crs=spn, final.crs=wgs84) {
+intersect.layers <- function(a.layer, a.columns, overlay, intersect.crs=spn, final.crs=wgs84, trim='y', trim.cols='') {
   
   data <- st_read(a.layer) %>%
     select(all_of(a.columns)) %>%
     st_transform(intersect.crs)
   
-  trimmed <- st_intersection(data, overlay) %>%
-    st_transform(final.crs)
+  if (trim == 'y') {
+    trimmed <- st_intersection(data, overlay) %>%
+      st_transform(final.crs)
+    
+  } else {
+    overlapping.features <- st_intersection(data, overlay) %>% pull(trim.cols)
+    
+    trimmed <- data %>%
+      filter(.data[[trim.cols]] %in% overlapping.features) %>%
+      st_transform(final.crs)
+    
+  }
   
   return(trimmed)
 }
@@ -52,7 +63,7 @@ my.city <- st_read("cities.shp") %>%
   st_transform(spn)
 
 city.signals <- intersect.layers("its_signals.shp", c("owner", "majorst_1", "ped_signal", "tsp"), my.city)
-city.transit <- intersect.layers("transit_lines.shp", c("trans_line", "mode"), my.city)
+city.transit <- intersect.layers("transit_lines.shp", c("OBJECTID","trans_line", "mode"), my.city, trim='n', trim.cols = 'OBJECTID')
 my.city <- my.city %>% st_transform(wgs84)
 
 ```

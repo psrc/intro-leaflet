@@ -163,6 +163,46 @@ city.signals <- st_intersection(signals, my.city)
 
 Now take a look at `city.signals`. There are now 9 signals in the data and the city name is Poulsbo for all of them. If you want to see them plotted, use `plot(city.signals)`. One caution, you will see a plot for every field/attribute in the data.
 
+## Trim Spatial Intersection
+This doesn't apply to our first example of intersecting points and polygons but what about when you intersect a polyline and polygon? Should the polyline be `trimmed` at the plygon boarder or should you keep all features, in their entirety if they intersect one another? The default behavior of `st_intersection` is to trim at the border of intersection. To see this, let's intersect a polyline and polgon.
+``` {r eval=FALSE, echo=TRUE}
+
+transit <- st_read("transit_lines.shp") %>%
+  st_transform(spn)
+
+my.city <- st_read("cities.shp") %>% 
+  filter(city_name == current.city) %>% 
+  select(city_name) %>%
+  st_transform(spn)
+
+city.transit <- st_intersection(transit, my.city)
+
+```
+
+## Don't Trim Spatial Intersection
+If we want all the features without any clipping, there is a slightly longer process to follow which includes:
+
+* Get a list of objects that intersect using `st_intersection` and the `pull` verb in dplyr to get a list from a tibble column
+* Use the list of intersecting objects to `filter` the spatial file
+
+``` {r eval=FALSE, echo=TRUE}
+
+transit <- st_read("transit_lines.shp") %>%
+  st_transform(spn)
+
+my.city <- st_read("cities.shp") %>% 
+  filter(city_name == current.city) %>% 
+  select(city_name) %>%
+  st_transform(spn)
+
+overlapping.features <- st_intersection(transit, my.city) %>% pull(OBJECTID)
+
+city.transit <- transit %>%
+  filter(OBJECTID %in% overlapping.features)
+
+```
+For our example of transit routes, the visual is very different - we now see routes that intersect in Poulsbo but traverse all of Bainbridge Island to the ferry terminal as well as ones that run down to Silverdale. Either option works, it just depends on what you want to see.
+
 ## Getting Ready to map
 There is one interesting/frustrating thing to know about mapping and the `crs`. As noted above, to perform spatial analysis you need to use a projected coordinate system. To map in `leaflet` you can use any `crs` but if you want to use their wonderful background maps, you need your data to be in `WGS84`. This is simple to do in `r` but is one more line of code. Let's just add it to what we already did above.
 ``` {r eval=FALSE, echo=TRUE}
@@ -187,19 +227,29 @@ Following the same process we have up to now, we can also load in `transit route
 1. Reads in a layer  
 2. Trims columns  
 3. Intersects layers  
-4. Re-projects data for mapping  
+4. Re-project data for mapping  
 
 This function could look like:
 ``` {r eval=FALSE, echo=TRUE}
 
-intersect.layers <- function(a.layer, a.columns, overlay, intersect.crs=spn, final.crs=wgs84) {
+intersect.layers <- function(a.layer, a.columns, overlay, intersect.crs=spn, final.crs=wgs84, trim='y', trim.cols='') {
   
   data <- st_read(a.layer) %>%
     select(all_of(a.columns)) %>%
     st_transform(intersect.crs)
   
-  trimmed <- st_intersection(data, overlay) %>%
-    st_transform(final.crs)
+  if (trim == 'y') {
+    trimmed <- st_intersection(data, overlay) %>%
+      st_transform(final.crs)
+    
+  } else {
+    overlapping.features <- st_intersection(data, overlay) %>% pull(trim.cols)
+    
+    trimmed <- data %>%
+      filter(.data[[trim.cols]] %in% overlapping.features) %>%
+      st_transform(final.crs)
+    
+  }
   
   return(trimmed)
 }
@@ -215,4 +265,4 @@ my.city <- my.city %>% st_transform(wgs84)
 
 ```
 
-Now that we have spatial layers, let's move on to creating a map with `leaflet` in `Lesson #2`!
+Now that we have spatial layers, let's move on to creating a map with `leaflet` in [Lesson #2](https://psrc.github.io/intro-leaflet/content/lesson-2.html)!

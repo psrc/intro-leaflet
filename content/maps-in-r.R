@@ -18,14 +18,24 @@ wgs84 <- 4326
 current.city <- "Poulsbo"
 
 # Create a function for spatial layers ------------------------------------
-intersect.layers <- function(a.layer, a.columns, overlay, intersect.crs=spn, final.crs=wgs84) {
+intersect.layers <- function(a.layer, a.columns, overlay, intersect.crs=spn, final.crs=wgs84, trim='y', trim.cols='') {
   
   data <- st_read(a.layer) %>%
     select(all_of(a.columns)) %>%
     st_transform(intersect.crs)
   
-  trimmed <- st_intersection(data, overlay) %>%
-    st_transform(final.crs)
+  if (trim == 'y') {
+    trimmed <- st_intersection(data, overlay) %>%
+      st_transform(final.crs)
+    
+  } else {
+    overlapping.features <- st_intersection(data, overlay) %>% pull(trim.cols)
+    
+    trimmed <- data %>%
+      filter(.data[[trim.cols]] %in% overlapping.features) %>%
+      st_transform(final.crs)
+    
+  }
   
   return(trimmed)
 }
@@ -37,7 +47,7 @@ my.city <- st_read("cities.shp") %>%
   st_transform(spn)
 
 city.signals <- intersect.layers("its_signals.shp", c("owner", "majorst_1", "ped_signal", "tsp"), my.city)
-city.transit <- intersect.layers("transit_lines.shp", c("trans_line", "mode"), my.city)
+city.transit <- intersect.layers("transit_lines.shp", c("OBJECTID","trans_line", "mode"), my.city, trim='n', trim.cols = 'OBJECTID')
 my.city <- my.city %>% st_transform(wgs84)
 
 
@@ -130,3 +140,33 @@ my.city <- st_read(city.url) %>%
   st_transform(spn) %>%
   rename(city_name = CITYNAME) %>%
   st_transform(spn)
+
+
+
+# Spatial Intersection Options --------------------------------------------
+
+# Trim at boundary
+transit <- st_read("transit_lines.shp") %>%
+  st_transform(spn)
+
+my.city <- st_read("cities.shp") %>% 
+  filter(city_name == current.city) %>% 
+  select(city_name) %>%
+  st_transform(spn)
+
+city.transit <- st_intersection(transit, my.city)
+
+# Keep all interecting polylines
+transit <- st_read("transit_lines.shp") %>%
+  st_transform(spn)
+
+my.city <- st_read("cities.shp") %>% 
+  filter(city_name == current.city) %>% 
+  select(city_name) %>%
+  st_transform(spn)
+
+overlapping.features <- st_intersection(transit, my.city) %>% pull(OBJECTID)
+
+city.transit <- transit %>%
+  filter(OBJECTID %in% overlapping.features)
+

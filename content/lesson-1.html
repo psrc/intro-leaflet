@@ -381,6 +381,40 @@ my.city &lt;- st_read(&quot;cities.shp&quot;) %&gt;%
 
 city.signals &lt;- st_intersection(signals, my.city)</code></pre>
 <p>Now take a look at <code>city.signals</code>. There are now 9 signals in the data and the city name is Poulsbo for all of them. If you want to see them plotted, use <code>plot(city.signals)</code>. One caution, you will see a plot for every field/attribute in the data.</p>
+<div id="trim-spatial-intersection" class="section level2">
+<h2>Trim Spatial Intersection</h2>
+<p>This doesn’t apply to our first example of intersecting points and polygons but what about when you intersect a polyline and polygon? Should the polyline be <code>trimmed</code> at the plygon boarder or should you keep all features, in their entirety if they intersect one another? The default behavior of <code>st_intersection</code> is to trim at the border of intersection. To see this, let’s intersect a polyline and polgon.</p>
+<pre class="r"><code>transit &lt;- st_read(&quot;transit_lines.shp&quot;) %&gt;%
+  st_transform(spn)
+
+my.city &lt;- st_read(&quot;cities.shp&quot;) %&gt;% 
+  filter(city_name == current.city) %&gt;% 
+  select(city_name) %&gt;%
+  st_transform(spn)
+
+city.transit &lt;- st_intersection(transit, my.city)</code></pre>
+</div>
+<div id="dont-trim-spatial-intersection" class="section level2">
+<h2>Don’t Trim Spatial Intersection</h2>
+<p>If we want all the features without any clipping, there is a slightly longer process to follow which includes:</p>
+<ul>
+<li>Get a list of objects that intersect using <code>st_intersection</code> and the <code>pull</code> verb in dplyr to get a list from a tibble column</li>
+<li>Use the list of intersecting objects to <code>filter</code> the spatial file</li>
+</ul>
+<pre class="r"><code>transit &lt;- st_read(&quot;transit_lines.shp&quot;) %&gt;%
+  st_transform(spn)
+
+my.city &lt;- st_read(&quot;cities.shp&quot;) %&gt;% 
+  filter(city_name == current.city) %&gt;% 
+  select(city_name) %&gt;%
+  st_transform(spn)
+
+overlapping.features &lt;- st_intersection(transit, my.city) %&gt;% pull(OBJECTID)
+
+city.transit &lt;- transit %&gt;%
+  filter(OBJECTID %in% overlapping.features)</code></pre>
+<p>For our example of transit routes, the visual is very different - we now see routes that intersect in Poulsbo but traverse all of Bainbridge Island to the ferry terminal as well as ones that run down to Silverdale. Either option works, it just depends on what you want to see.</p>
+</div>
 <div id="getting-ready-to-map" class="section level2">
 <h2>Getting Ready to map</h2>
 <p>There is one interesting/frustrating thing to know about mapping and the <code>crs</code>. As noted above, to perform spatial analysis you need to use a projected coordinate system. To map in <code>leaflet</code> you can use any <code>crs</code> but if you want to use their wonderful background maps, you need your data to be in <code>WGS84</code>. This is simple to do in <code>r</code> but is one more line of code. Let’s just add it to what we already did above.</p>
@@ -407,17 +441,27 @@ city.signals &lt;- st_intersection(signals, my.city) %&gt;%
 </li>
 <li>Intersects layers<br />
 </li>
-<li>Re-projects data for mapping</li>
+<li>Re-project data for mapping</li>
 </ol>
 <p>This function could look like:</p>
-<pre class="r"><code>intersect.layers &lt;- function(a.layer, a.columns, overlay, intersect.crs=spn, final.crs=wgs84) {
+<pre class="r"><code>intersect.layers &lt;- function(a.layer, a.columns, overlay, intersect.crs=spn, final.crs=wgs84, trim=&#39;y&#39;, trim.cols=&#39;&#39;) {
   
   data &lt;- st_read(a.layer) %&gt;%
     select(all_of(a.columns)) %&gt;%
     st_transform(intersect.crs)
   
-  trimmed &lt;- st_intersection(data, overlay) %&gt;%
-    st_transform(final.crs)
+  if (trim == &#39;y&#39;) {
+    trimmed &lt;- st_intersection(data, overlay) %&gt;%
+      st_transform(final.crs)
+    
+  } else {
+    overlapping.features &lt;- st_intersection(data, overlay) %&gt;% pull(trim.cols)
+    
+    trimmed &lt;- data %&gt;%
+      filter(.data[[trim.cols]] %in% overlapping.features) %&gt;%
+      st_transform(final.crs)
+    
+  }
   
   return(trimmed)
 }</code></pre>
@@ -425,7 +469,7 @@ city.signals &lt;- st_intersection(signals, my.city) %&gt;%
 <pre class="r"><code>city.signals &lt;- intersect.layers(&quot;its_signals.shp&quot;, c(&quot;owner&quot;, &quot;majorst_1&quot;, &quot;ped_signal&quot;, &quot;tsp&quot;), my.city)
 city.transit &lt;- intersect.layers(&quot;transit_lines.shp&quot;, c(&quot;trans_line&quot;, &quot;mode&quot;), my.city)
 my.city &lt;- my.city %&gt;% st_transform(wgs84)</code></pre>
-<p>Now that we have spatial layers, let’s move on to creating a map with <code>leaflet</code> in <code>Lesson #2</code>!</p>
+<p>Now that we have spatial layers, let’s move on to creating a map with <code>leaflet</code> in <a href="https://psrc.github.io/intro-leaflet/content/lesson-2.html">Lesson #2</a>!</p>
 </div>
 
 
